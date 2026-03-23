@@ -1,7 +1,7 @@
-<h1 align="center">Build Your Own AI Agent with Composio + Vercel AI SDK</h1>
+<h1 align="center">Build Your Own OpenClaw from Scratch with Composio, Vercel AI SDK, Telegram, and Supermemory</h1>
 
 <p align="center">
-  Turn the Vercel AI SDK chatbot template into a full AI agent that controls Gmail, Slack, Notion, Calendar, and 1000+ other tools — powered by <a href="https://composio.dev">Composio</a>.
+  Start from the <a href="https://vercel.com/templates/next.js/chatbot">Vercel AI SDK Chatbot template</a>, follow the prompts below, and end up with the finished agent on the <code>main</code> branch of this repo — an AI agent that controls Gmail, Slack, Notion, Calendar, and 1000+ tools via <a href="https://composio.dev">Composio</a>.
 </p>
 
 <p align="center">

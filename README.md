@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="public/automate customer dispute (Slack, Notion, Gmail) - -- TRIPLE FAST, 50FPS, 1080P.gif" alt="Demo: AI agent resolving a customer dispute across Slack, Notion, and Gmail" width="720" />
+  <img src="public/demo.gif" alt="Demo: AI agent resolving a customer dispute across Slack, Notion, and Gmail" width="720" />
 </p>
 
 <p align="center">

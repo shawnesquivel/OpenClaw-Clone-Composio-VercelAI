@@ -306,7 +306,7 @@ const PurePreviewMessage = ({
         toolCallId: string;
         state: string;
       };
-      const input = "input" in part ? part.input : undefined;
+      const input = "input" in part ? (part.input as Record<string, unknown>) : undefined;
       const output = "output" in part ? part.output : undefined;
       const errorText =
         "errorText" in part ? (part.errorText as string) : undefined;

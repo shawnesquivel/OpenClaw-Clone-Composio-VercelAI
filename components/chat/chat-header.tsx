@@ -10,6 +10,7 @@ import { VercelIcon } from "./icons";
 import { VisibilitySelector, type VisibilityType } from "./visibility-selector";
 
 const composioLogoSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/composio-logo.svg`;
+// Link audit 2026-03-27: confirmed composio.dev (not composio.org) — see #bugs report 2026-03-26
 const composioHref = "https://composio.dev";
 
 function PureChatHeader({

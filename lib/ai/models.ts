@@ -1,4 +1,4 @@
-export const DEFAULT_CHAT_MODEL = "moonshotai/kimi-k2-0905";
+export const DEFAULT_CHAT_MODEL = "anthropic/claude-sonnet-4.6";
 
 export const titleModel = {
   id: "mistral/mistral-small",
@@ -46,8 +46,8 @@ export const chatModels: ChatModel[] = [
     gatewayOrder: ["mistral"],
   },
   {
-    id: "moonshotai/kimi-k2-0905",
-    name: "Kimi K2 0905",
+    id: "moonshotai/kimi-k2",
+    name: "Kimi K2",
     provider: "moonshotai",
     description: "Fast model with tool use",
     gatewayOrder: ["baseten", "fireworks"],
@@ -57,6 +57,13 @@ export const chatModels: ChatModel[] = [
     name: "Kimi K2.5",
     provider: "moonshotai",
     description: "Moonshot AI flagship model",
+    gatewayOrder: ["fireworks", "bedrock"],
+  },
+  {
+    id: "moonshotai/kimi-k2.6",
+    name: "Kimi K2.6",
+    provider: "moonshotai",
+    description: "Latest Moonshot K2 release",
     gatewayOrder: ["fireworks", "bedrock"],
   },
   {

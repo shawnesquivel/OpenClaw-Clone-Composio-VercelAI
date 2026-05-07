@@ -24,6 +24,7 @@ export const user = pgTable("User", {
   telegramLinkTokenExpiresAt: timestamp("telegramLinkTokenExpiresAt", {
     withTimezone: true,
   }),
+  soul: text("soul"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

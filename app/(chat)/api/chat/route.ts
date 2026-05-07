@@ -36,6 +36,7 @@ import {
   getChatById,
   getMessageCountByUserId,
   getMessagesByChatId,
+  getUserSoul,
   saveChat,
   saveMessages,
   updateChatTitleById,
@@ -223,6 +224,8 @@ export async function POST(request: Request) {
       sanitizeToolCallIds(uiMessages)
     );
 
+    const soul = await getUserSoul({ userId: session.user.id });
+
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
       execute: async ({ writer: dataStream }) => {
@@ -279,7 +282,7 @@ export async function POST(request: Request) {
         };
         const result = streamText({
           model: getLanguageModel(chatModel),
-          system: systemPrompt({ requestHints, supportsTools }),
+          system: systemPrompt({ requestHints, supportsTools, soul }),
           messages: modelMessages,
           stopWhen: stepCountIs(5),
           ...(isReasoningModel && !supportsTools

@@ -5,7 +5,7 @@ import { Composio } from "@composio/core";
 import { VercelProvider } from "@composio/vercel";
 import { supermemoryTools } from "@supermemory/tools/ai-sdk";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
-import { regularPrompt } from "@/lib/ai/prompts";
+import { buildSoulPrompt, regularPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import {
   appendTelegramTurn,
@@ -164,9 +164,13 @@ async function handleRegularMessage(
       content: userMessage,
     });
 
+    const soulBlock = buildSoulPrompt(linkedUser.soul);
+
     const result = await generateText({
       model: getLanguageModel(DEFAULT_CHAT_MODEL),
-      system: `${regularPrompt}
+      system: `${soulBlock}
+
+${regularPrompt}
 
 You are accessible via Telegram. Replies must fit in a chat message — keep them short (1-3 sentences typical, never more than ~500 chars). No markdown headings, no long lists.`,
       messages: [...history, { role: "user", content: userMessage }],

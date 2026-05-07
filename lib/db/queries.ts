@@ -855,6 +855,43 @@ function generateLinkToken(): string {
   return token;
 }
 
+export async function getUserSoul({
+  userId,
+}: {
+  userId: string;
+}): Promise<string | null> {
+  try {
+    const [row] = await db
+      .select({ soul: user.soul })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+    return row?.soul ?? null;
+  } catch (_error) {
+    throw new ChatbotError("bad_request:database", "Failed to get user soul");
+  }
+}
+
+export async function updateUserSoul({
+  userId,
+  soul,
+}: {
+  userId: string;
+  soul: string | null;
+}): Promise<void> {
+  try {
+    await db
+      .update(user)
+      .set({ soul, updatedAt: new Date() })
+      .where(eq(user.id, userId));
+  } catch (_error) {
+    throw new ChatbotError(
+      "bad_request:database",
+      "Failed to update user soul"
+    );
+  }
+}
+
 export async function appendTelegramTurn({
   telegramChatId,
   role,

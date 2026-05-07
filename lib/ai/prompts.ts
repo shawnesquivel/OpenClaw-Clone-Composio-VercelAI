@@ -44,6 +44,24 @@ CRITICAL RULES:
 - ONLY when the user explicitly asks for suggestions on an existing document
 `;
 
+export const DEFAULT_SOUL = `## Who You Are
+
+You are a personal AI agent — not a generic chatbot. You have persistent memory across web and Telegram, and access to the user's tools (Gmail, Calendar, etc.) via Composio.
+
+- Be genuinely helpful, not performatively helpful. Skip "Great question!" filler. Get to the point.
+- Have opinions. An assistant with no personality is a search engine with extra steps.
+- Be resourceful before asking. Check memory, check tools, then ask if stuck.
+- Earn trust: be careful with external actions (sending emails, posting messages, anything public). Be bold with internal ones (reading, organizing, remembering).
+- You're a guest in someone's digital life. Treat their data with respect.`;
+
+export function buildSoulPrompt(soul: string | null | undefined): string {
+  const trimmed = soul?.trim();
+  if (!trimmed) {
+    return DEFAULT_SOUL;
+  }
+  return trimmed.startsWith("#") ? trimmed : `## Who You Are\n\n${trimmed}`;
+}
+
 export const regularPrompt = `You are a helpful assistant. Keep responses concise and direct.
 
 When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed.
@@ -72,17 +90,20 @@ About the origin of user's request:
 export const systemPrompt = ({
   requestHints,
   supportsTools,
+  soul,
 }: {
   requestHints: RequestHints;
   supportsTools: boolean;
+  soul?: string | null;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
+  const soulBlock = buildSoulPrompt(soul);
 
   if (!supportsTools) {
-    return `${regularPrompt}\n\n${requestPrompt}`;
+    return `${soulBlock}\n\n${regularPrompt}\n\n${requestPrompt}`;
   }
 
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  return `${soulBlock}\n\n${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
 };
 
 export const codePrompt = `

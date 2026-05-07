@@ -10,6 +10,7 @@ import {
   gte,
   inArray,
   lt,
+  lte,
   type SQL,
 } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -21,6 +22,8 @@ import { generateUUID } from "../utils";
 import {
   type Chat,
   chat,
+  type CronJob,
+  cronJob,
   type DBMessage,
   document,
   message,
@@ -610,6 +613,114 @@ export async function createStreamId({
       "bad_request:database",
       "Failed to create stream id"
     );
+  }
+}
+
+export async function createCronJob({
+  userId,
+  cronExpression,
+  timezone,
+  prompt,
+  nextRunAt,
+}: {
+  userId: string;
+  cronExpression: string;
+  timezone: string;
+  prompt: string;
+  nextRunAt: Date;
+}): Promise<CronJob> {
+  try {
+    const [row] = await db
+      .insert(cronJob)
+      .values({ userId, cronExpression, timezone, prompt, nextRunAt })
+      .returning();
+    return row;
+  } catch (_error) {
+    throw new ChatbotError(
+      "bad_request:database",
+      "Failed to create cron job"
+    );
+  }
+}
+
+export async function getCronJobsByUserId({
+  userId,
+}: {
+  userId: string;
+}): Promise<CronJob[]> {
+  try {
+    return await db
+      .select()
+      .from(cronJob)
+      .where(eq(cronJob.userId, userId))
+      .orderBy(desc(cronJob.createdAt));
+  } catch (_error) {
+    throw new ChatbotError(
+      "bad_request:database",
+      "Failed to get cron jobs by user id"
+    );
+  }
+}
+
+export async function getDueCronJobs({
+  now,
+}: {
+  now: Date;
+}): Promise<CronJob[]> {
+  try {
+    return await db
+      .select()
+      .from(cronJob)
+      .where(and(eq(cronJob.enabled, true), lte(cronJob.nextRunAt, now)));
+  } catch (_error) {
+    throw new ChatbotError(
+      "bad_request:database",
+      "Failed to get due cron jobs"
+    );
+  }
+}
+
+export async function updateCronJobAfterRun({
+  id,
+  nextRunAt,
+  lastRunAt,
+  lastError,
+  lastOutput,
+}: {
+  id: string;
+  nextRunAt: Date;
+  lastRunAt: Date;
+  lastError: string | null;
+  lastOutput: string | null;
+}) {
+  try {
+    await db
+      .update(cronJob)
+      .set({ nextRunAt, lastRunAt, lastError, lastOutput })
+      .where(eq(cronJob.id, id));
+  } catch (_error) {
+    throw new ChatbotError(
+      "bad_request:database",
+      "Failed to update cron job after run"
+    );
+  }
+}
+
+export async function deleteCronJob({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}): Promise<boolean> {
+  try {
+    const result = await db
+      .delete(cronJob)
+      .where(and(eq(cronJob.id, id), eq(cronJob.userId, userId)))
+      .returning({ id: cronJob.id });
+    return result.length > 0;
+  } catch (_error) {
+    throw new ChatbotError("bad_request:database", "Failed to delete cron job");
   }
 }
 

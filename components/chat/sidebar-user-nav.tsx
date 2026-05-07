@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Settings } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
@@ -76,6 +77,17 @@ export function SidebarUserNav({ user }: { user: User }) {
             data-testid="user-nav-menu"
             side="top"
           >
+            <DropdownMenuItem asChild className="cursor-pointer text-[13px]">
+              <Link
+                href="https://connect.composio.dev"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <Settings className="size-3.5" />
+                Composio Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer text-[13px]"
               data-testid="user-nav-item-theme"

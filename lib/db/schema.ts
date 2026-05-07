@@ -117,6 +117,26 @@ export const suggestion = pgTable(
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
 
+export const cronJob = pgTable("CronJob", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id),
+  cronExpression: varchar("cronExpression", { length: 64 }).notNull(),
+  timezone: varchar("timezone", { length: 64 }).notNull().default("UTC"),
+  prompt: text("prompt").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  nextRunAt: timestamp("nextRunAt", { withTimezone: true }).notNull(),
+  lastRunAt: timestamp("lastRunAt", { withTimezone: true }),
+  lastError: text("lastError"),
+  lastOutput: text("lastOutput"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type CronJob = InferSelectModel<typeof cronJob>;
+
 export const stream = pgTable(
   "Stream",
   {

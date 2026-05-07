@@ -67,9 +67,50 @@ OpenClaw is a desktop product where the agent reads `~/.openclaw/SOUL.md` at sta
 
 ### What we deliberately skipped
 
-- **Onboarding wizard** (TrustClaw has 7 steps: name, writing style, personality, emoji, lore, model, integrations). Overkill for a tutorial. New users get `DEFAULT_SOUL` until they bother to customize.
+- **Multi-step UI wizard** (TrustClaw has 7 steps: name, writing style, personality, emoji, lore, model, integrations). Replaced with **conversational onboarding** — see the next section.
 - **Separate columns for `identityPrompt` / `userPrompt` / `lore`**. One column. KISS.
 - **Versioning / history.** Edits overwrite. Add an audit table later if you care.
+
+## Conversational onboarding
+
+When `User.soul` is null and the user is **not** a guest, we prepend an `ONBOARDING_PROMPT` block to the system prompt. The agent runs the onboarding itself over 2-3 conversational turns, then calls a `setSoul` tool to commit the resulting markdown to `User.soul`. On the next turn, the soul is non-null, the onboarding block drops off, the soul block carries the user's customizations, and the agent operates normally.
+
+### Trigger conditions
+
+| Channel | When ONBOARDING_PROMPT is injected |
+|---|---|
+| Web | `!soul && session.user.type !== "guest"` |
+| Telegram | `!linkedUser.soul` (Telegram users are always non-guest by definition — must be linked) |
+
+Both channels share the same `User.soul`, so finishing onboarding from one finishes it for both.
+
+### What the agent collects
+
+- User's **name** → stored via `addMemory` (Supermemory, persistent).
+- A **stylistic preference** (casual / professional / sassy / etc.) → influences the soul.
+- (Optional) **one durable fact** about the user or what they want help with → `addMemory`.
+
+The prompt is explicit that there are two stores and tells the agent which fact goes where:
+
+> **`addMemory`** = facts ABOUT THE USER (their name, their job, their preferences). Goes into Supermemory, persists across all channels.
+>
+> **`setSoul`** = the AGENT'S identity (its name, voice, rules). Goes into the user's `soul` column. Replaces this onboarding block on the next turn.
+
+### Escape hatches (built into the prompt)
+
+- User says "skip" / "use defaults" → agent calls `setSoul` with default-flavoured content immediately.
+- User refuses to share name → agent ships a generic soul, no name, moves on.
+- Hard cap: after ~3 onboarding turns, the agent must commit a reasonable soul whether or not it gathered everything.
+
+### `setSoul` tool
+
+`lib/ai/tools/set-soul.ts`. Available to authenticated, non-guest users on both channels. Takes `{ soul: string }` (20–4000 chars) and writes via `updateUserSoul({ userId, soul })`. Idempotent — re-calling overwrites.
+
+### What this is *not*
+
+- It's not a wizard. There's no `OnboardingState` table, no progress tracking, no "step N of M". The agent is the state machine; the prompt is its rulebook.
+- It's not a one-time page. If a user clears their soul via `/admin/agent` ("Reset to default" → soul becomes null), onboarding will run again on the next message. That's a feature.
+- Guests skip it entirely; they always get `DEFAULT_SOUL`.
 
 ## Layer 2: Working memory (recent conversation)
 
@@ -194,6 +235,7 @@ References for adding any of these: `/Users/shawnesquivel/GitHub/trustclaw/src/s
 
 ## Glossary
 
+- **Onboarding mode**: state where `User.soul IS NULL` and the user is non-guest. Triggers `ONBOARDING_PROMPT` injection until the agent calls `setSoul`.
 - **Soul**: layer 1 — agent identity, stored on `User`.
 - **Working memory**: layer 2 — last N turns of the current conversation, stored per-channel.
 - **Persistent memory**: layer 3 — durable facts, stored in Supermemory under `containerTags: [userId]`.

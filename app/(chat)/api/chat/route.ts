@@ -28,6 +28,7 @@ import { getWeather } from "@/lib/ai/tools/get-weather";
 import { listMySchedules } from "@/lib/ai/tools/list-my-schedules";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { scheduleTask } from "@/lib/ai/tools/schedule-task";
+import { setSoul } from "@/lib/ai/tools/set-soul";
 import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
@@ -225,6 +226,7 @@ export async function POST(request: Request) {
     );
 
     const soul = await getUserSoul({ userId: session.user.id });
+    const needsOnboarding = !soul && session.user.type !== "guest";
 
     const stream = createUIMessageStream({
       originalMessages: isToolApprovalFlow ? uiMessages : undefined,
@@ -250,6 +252,9 @@ export async function POST(request: Request) {
           scheduleTask: scheduleTask({ session }),
           listMySchedules: listMySchedules({ session }),
           cancelSchedule: cancelSchedule({ session }),
+          ...(session.user.type !== "guest"
+            ? { setSoul: setSoul({ userId: session.user.id }) }
+            : {}),
         };
 
         let composioTools: ToolSet = {};
@@ -282,7 +287,12 @@ export async function POST(request: Request) {
         };
         const result = streamText({
           model: getLanguageModel(chatModel),
-          system: systemPrompt({ requestHints, supportsTools, soul }),
+          system: systemPrompt({
+            requestHints,
+            supportsTools,
+            soul,
+            needsOnboarding,
+          }),
           messages: modelMessages,
           stopWhen: stepCountIs(5),
           ...(isReasoningModel && !supportsTools

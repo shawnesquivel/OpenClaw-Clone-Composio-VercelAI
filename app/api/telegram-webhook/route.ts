@@ -5,7 +5,12 @@ import { Composio } from "@composio/core";
 import { VercelProvider } from "@composio/vercel";
 import { supermemoryTools } from "@supermemory/tools/ai-sdk";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
-import { buildSoulPrompt, regularPrompt } from "@/lib/ai/prompts";
+import {
+  buildSoulPrompt,
+  ONBOARDING_PROMPT,
+  regularPrompt,
+} from "@/lib/ai/prompts";
+import { setSoul } from "@/lib/ai/tools/set-soul";
 import { getLanguageModel } from "@/lib/ai/providers";
 import {
   appendTelegramTurn,
@@ -148,6 +153,8 @@ async function handleRegularMessage(
       }
     }
 
+    Object.assign(tools, { setSoul: setSoul({ userId: linkedUser.id }) });
+
     const recentTurns = await getRecentTelegramTurns({
       telegramChatId: chatId,
       limit: 10,
@@ -165,14 +172,20 @@ async function handleRegularMessage(
     });
 
     const soulBlock = buildSoulPrompt(linkedUser.soul);
+    const needsOnboarding = !linkedUser.soul;
+    const onboardingBlock = needsOnboarding ? `${ONBOARDING_PROMPT}\n\n` : "";
 
     const result = await generateText({
       model: getLanguageModel(DEFAULT_CHAT_MODEL),
-      system: `${soulBlock}
+      system: `${onboardingBlock}${soulBlock}
 
 ${regularPrompt}
 
-You are accessible via Telegram. Replies must fit in a chat message — keep them short (1-3 sentences typical, never more than ~500 chars). No markdown headings, no long lists.`,
+You are accessible via Telegram. Replies must fit in a chat message — keep them short (1-3 sentences typical, never more than ~500 chars). No markdown headings, no long lists.${
+        needsOnboarding
+          ? " Onboarding: ask ONE question per turn, not multiple."
+          : ""
+      }`,
       messages: [...history, { role: "user", content: userMessage }],
       tools,
       stopWhen: stepCountIs(8),

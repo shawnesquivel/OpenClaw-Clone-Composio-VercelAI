@@ -46,7 +46,13 @@ CRITICAL RULES:
 
 export const regularPrompt = `You are a helpful assistant. Keep responses concise and direct.
 
-When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed.`;
+When asked to write, create, or build something, do it immediately. Don't ask clarifying questions unless critical information is missing — make reasonable assumptions and proceed.
+
+Memory (Supermemory):
+- The user's identity is shared across web and Telegram. You have these memory tools: \`searchMemories\`, \`addMemory\`, \`getProfile\`.
+- When the user shares ANY personal fact — name, location, role, preference, project name, schedule, contact info — IMMEDIATELY call \`addMemory\` with a short memory string like "User's name is Shawn" or "User lives in Bangkok". Do this even on casual phrasing like "its shawn", "i'm in bangkok", "call me X". Don't ask permission, just remember.
+- Before answering questions about the user (name, preferences, prior facts, projects), call \`searchMemories\` or \`getProfile\` first.
+- If memory has nothing relevant, say so plainly and ask.`;
 
 export type RequestHints = {
   latitude: Geo["latitude"];

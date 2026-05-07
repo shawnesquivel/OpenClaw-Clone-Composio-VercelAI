@@ -5,6 +5,7 @@ import { Composio } from "@composio/core";
 import { VercelProvider } from "@composio/vercel";
 import { supermemoryTools } from "@supermemory/tools/ai-sdk";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
+import { regularPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import {
   getUserByTelegramChatId,
@@ -147,8 +148,9 @@ async function handleRegularMessage(
 
     const result = await generateText({
       model: getLanguageModel(DEFAULT_CHAT_MODEL),
-      system:
-        "You are a helpful AI assistant accessible via Telegram. The user is identified across web and Telegram — they have the same connected tools and memory in both places. Be concise — replies should be short enough for a chat message. Use your memory tools to remember important facts and recall them when relevant.",
+      system: `${regularPrompt}
+
+You are accessible via Telegram. Replies must fit in a chat message — keep them short (1-3 sentences typical, never more than ~500 chars). No markdown headings, no long lists.`,
       messages: [{ role: "user", content: userMessage }],
       tools,
       stopWhen: stepCountIs(8),

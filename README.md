@@ -94,12 +94,12 @@ In Part 2, we plug in Composio so the agent can reach out and actually do things
 
 1. Install Composio: `pnpm add @composio/core @composio/vercel`
 2. Grab your free API key from [composio.dev](https://composio.dev) → set `COMPOSIO_API_KEY` in `.env.local`
-3. Paste **Prompt 2A** (below) into your AI editor — it handles the refactor, per-user auth, and an `/admin` debug page
-4. Paste **Prompt 2B** (below) — three small polish fixes (tool ID sanitizer, dynamic tool UI, more models)
+3. Paste **🤖 Agent-Ready Prompt 2A** (below) into your AI editor — it handles the refactor, per-user auth, and an `/admin` debug page
+4. Paste **🤖 Agent-Ready Prompt 2B** (below) — expands the model list
 5. Prompt your agent and authorize apps when it asks (one-click OAuth)
 6. Verify: logged-in users can connect external apps, guest users get local tools only
 
-#### Prompt 2A — Composio + Per-User Auth + Admin
+#### 🤖 Agent-Ready Prompt 2A — Composio + Per-User Auth + Admin
 
 Wires Composio into the existing chat route with real per-user identity, gates guests, and adds a debug `/admin` page.
 
@@ -142,9 +142,9 @@ Docs:
 
 ````
 
-#### Prompt 2B — Expand the model list
+#### 🤖 Agent-Ready Prompt 2B — Expand the model list
 
-Run after Prompt 2A lands.
+Run after Agent-Ready Prompt 2A lands.
 
 ````text
 
@@ -174,10 +174,10 @@ The agent has hands but no memory. Tell it your name in one chat, open a new cha
 **Steps:**
 
 1. Install: `pnpm add @supermemory/tools`
-2. Paste **Prompt 3** below.
+2. Paste **🤖 Agent-Ready Prompt 3** below.
 3. Test: tell the agent your name, start a new chat, ask "what do you know about me?" — it should call `searchMemories` and recall.
 
-#### Prompt 3 — Wire Supermemory into the chat route
+#### 🤖 Agent-Ready Prompt 3 — Wire Supermemory into the chat route
 
 ````text
 Add Supermemory as a third tool source in app/(chat)/api/chat/route.ts, alongside the existing local tools and Composio tools.
@@ -218,12 +218,12 @@ Right now your agent has no personality and no concept of who *it* is — every 
 
 **Steps:**
 
-1. Paste **Prompt 4** below.
+1. Paste **🤖 Agent-Ready Prompt 4** below.
 2. Run `pnpm db:generate && pnpm db:migrate`.
 3. Sign up as a new user → first message should trigger the onboarding flow → after 2-3 turns, agent calls `setSoul`.
 4. Visit `/admin/agent` → confirm your custom soul shows up; test "Reset to default".
 
-#### Prompt 4 — Soul column, onboarding, and `/admin/agent`
+#### 🤖 Agent-Ready Prompt 4 — Soul column, onboarding, and `/admin/agent`
 
 ````text
 Add a per-user agent identity ("soul") with conversational onboarding.
@@ -291,26 +291,35 @@ Right now the agent only lives in your browser tab. Telegram lets your users tal
 
 1. Open Telegram, search [@BotFather](https://t.me/BotFather), `/newbot`.
 2. Pick a name + username (must end in `bot`).
-3. BotFather returns a token. Add to `.env.local`:
+3. BotFather returns a token. Visual reference, with token redacted:
+
+<img src="./tutorial/screenshots/botfather-create-bot.png" alt="BotFather creating a Telegram bot, with the bot token redacted" width="360" />
+
+4. Add the token and bot username to `.env.local`:
+
    ```
    TELEGRAM_BOT_TOKEN=123456789:AA...
    TELEGRAM_BOT_USERNAME=your_app_bot
    TELEGRAM_WEBHOOK_SECRET=<any random string, e.g. openssl rand -hex 16>
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
-4. Restart `pnpm dev`.
+5. Restart `pnpm dev`.
 
 **Local dev requires public HTTPS** — Telegram won't deliver to `localhost`. Use [ngrok](https://ngrok.com): `ngrok http 3000`. The ngrok URL changes on free-tier restarts, so you'll re-register the webhook from `/telegram` each time.
 
 **Steps:**
 
-1. Paste **Prompt 5** below.
+1. Paste **🤖 Agent-Ready Prompt 5** below.
 2. Run `pnpm db:generate && pnpm db:migrate`.
 3. Start ngrok → visit `/telegram` → "Register webhook".
 4. As a logged-in user, visit `/admin/telegram` → click "Link Telegram" → tap the `t.me/your_bot` link → send `/start <code>`.
 5. DM the bot from your phone: "fetch my latest emails" → uses the same Gmail OAuth you connected on the web.
 
-#### Prompt 5 — Telegram bot + account linking + cross-channel agent
+Visual reference:
+
+<img src="./tutorial/screenshots/telegram-composio-email-demo.png" alt="Telegram bot using the same Composio Gmail connection to fetch latest emails" width="360" />
+
+#### 🤖 Agent-Ready Prompt 5 — Telegram bot + account linking + cross-channel agent
 
 ````text
 Add a Telegram channel for the agent. One bot for the whole app, per-user account linking.
@@ -333,6 +342,13 @@ Install and wire anything missing before building the Telegram route:
    - sendTelegramMessage, getWebhookInfo, setWebhook, deleteWebhook, getBotInfo.
    - All read TELEGRAM_BOT_TOKEN from env.
    - Use NEXT_PUBLIC_APP_URL when building user-facing links back to the web app.
+   - setWebhook must call Telegram's setWebhook with:
+     - url: `${NEXT_PUBLIC_APP_URL}/api/telegram-webhook`
+     - secret_token: TELEGRAM_WEBHOOK_SECRET
+     - allowed_updates: ["message"]
+     - drop_pending_updates: true when registering from the dev/debug page.
+   - getWebhookInfo should expose pending_update_count and last_error_message so debugging is obvious.
+   - deleteWebhook should support drop_pending_updates for local reset/debug flows.
 
 3. Webhook handler (app/api/telegram-webhook/route.ts)
    - Validates x-telegram-bot-api-secret-token via timingSafeEqual against TELEGRAM_WEBHOOK_SECRET.
@@ -358,6 +374,8 @@ Install and wire anything missing before building the Telegram route:
    - Shows getBotInfo + getWebhookInfo.
    - "Register webhook" button (auto-detects host, registers /api/telegram-webhook).
    - "Delete webhook" button.
+   - Surface webhook delivery errors from getWebhookInfo.last_error_message.
+   - Note: getUpdates/long polling will not work while a webhook is set; use Delete webhook first if you ever switch modes.
 
 Verify:
 - BotFather token + secret in .env.local, dev server restarted.
@@ -399,13 +417,13 @@ For local dev this doesn't matter — `./scripts/test-cron.sh trigger` calls the
 **Steps:**
 
 1. Install: `pnpm add cron-parser`
-2. Paste **Prompt 6** below.
+2. Paste **🤖 Agent-Ready Prompt 6** below.
 3. Run `pnpm db:generate && pnpm db:migrate`.
 4. In chat: *"Schedule a task that says hello every minute."* (works locally; on deployed Hobby, will only actually fire once per day)
 5. Local test: `./scripts/test-cron.sh list` → `make-due <id>` → `trigger` → check `lastRunAt`.
 6. Visit `/admin/schedules` to see the schedule + last output.
 
-#### Prompt 6 — Agent-managed cron schedules
+#### 🤖 Agent-Ready Prompt 6 — Agent-managed cron schedules
 
 ````text
 Add per-user scheduled tasks the agent can create, list, and cancel from chat.

@@ -142,9 +142,9 @@ Docs:
 
 ````
 
-#### Prompt 2B — Polish (Tool ID Fix + Dynamic Tool UI + More Models)
+#### Prompt 2B — Expand the model list
 
-Run after Prompt 2A lands. Three fixes in one pass.
+Run after Prompt 2A lands.
 
 ````text
 

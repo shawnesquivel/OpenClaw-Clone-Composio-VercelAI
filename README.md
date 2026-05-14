@@ -192,7 +192,7 @@ Context:
 - Preserve all existing chat behavior: streaming, title generation, rate limits, tool approval flow, message saving, local tools, and Composio tools.
 
 Also update lib/ai/prompts.ts (regularPrompt) with operational rules for the memory tools:
-- addMemory: be aggressive, even on casual phrasings ("oh btw I'm vegan" → call addMemory). Canonicalize facts on write — "call me Shawn" / "refer to me as Shawn" / "my name is Shawn" all store as "The user's preferred name is Shawn." Don't store the assistant's identity, instructions, or persona.
+- addMemory: store durable user facts (name, preferences, projects, constraints) even when phrased casually ("oh btw I'm vegan" → call addMemory). Skip ephemeral context (today's mood, one-off questions). Canonicalize facts on write — "call me Shawn" / "refer to me as Shawn" / "my name is Shawn" all store as "The user's preferred name is Shawn." Don't store the assistant's identity, instructions, or persona.
 - searchMemories: this is direct semantic search over stored memories. Prefer it for specific recall ("what's my name?", "what did I say about my diet?").
 - getProfile: this returns Supermemory's synthesized profile (static + dynamic buckets) and may include search results when given a query. Prefer it for broad personalization ("what do you know about me?"). If getProfile returns empty buckets, fall back to searchMemories before telling the user you don't know.
 - Always check memory BEFORE answering questions about the user — don't say "I don't know" without calling at least one of these tools first.

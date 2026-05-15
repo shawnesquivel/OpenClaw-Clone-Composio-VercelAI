@@ -439,11 +439,10 @@ For local dev (where Vercel Cron does not fire), `/admin/schedules` includes a *
 **Steps:**
 
 1. Install: `pnpm add cron-parser`
-2. `openssl rand -hex 32` → add to `.env.local` as `CRON_SECRET=...`.
-3. Paste **🤖 Agent-Ready Prompt 6** below.
-4. Run `pnpm db:generate && pnpm db:migrate`.
-5. In chat: *"Schedule a daily task at 9 AM that says hello."*
-6. Visit `/admin/schedules` → click **Run now** on the new row → confirm `lastRunAt` and `lastOutput` populate.
+2. Paste **🤖 Agent-Ready Prompt 6** below.
+3. Run `pnpm db:generate && pnpm db:migrate`.
+4. In chat: *"Schedule a daily task at 9 AM that says hello."*
+5. Visit `/admin/schedules` → click **Run now** on the new row → confirm `lastRunAt` and `lastOutput` populate.
 
 #### 🤖 Agent-Ready Prompt 6 — Agent-managed cron schedules
 
@@ -452,7 +451,7 @@ Add per-user scheduled tasks the agent can create, list, and cancel from chat.
 
 Implement v1 only: users can create, list, cancel, and locally test scheduled tasks. Do NOT build DB locking, a split claim/execute worker, retries, queues, or Telegram delivery yet.
 
-This feature requires Composio and Supermemory in the scheduled run. If Composio helpers, @supermemory/tools, or SUPERMEMORY_API_KEY are missing, add them and wire them the same way the chat route does.
+Scheduled runs should execute the saved prompt as the schedule owner, with that user's Composio tools and Supermemory context available just like a normal chat run.
 
 1. Schema (lib/db/schema.ts)
    - Add CronJob table:
